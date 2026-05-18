@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AI 엉덩이 때리기 🍑</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+*:focus { outline: none; }
+*:focus-visible { outline: none; }
+
+:root {
+  --pink: #ff6b9d;
+  --purple: #c77dff;
+  --bg: #fff5fb;
+  --accent: #ff6b9d;
+}
+
+body {
+  font-family: 'Jua', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ─── CURSOR ─── */
+#cursor {
+  position: fixed;
+  pointer-events: none;
+  z-index: 99999;
+  font-size: 2.4rem;
+  transform: translate(-28%, -80%);
+  line-height: 1;
+  will-change: left, top;
+  filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.18));
+  transition: transform 0.06s;
+}
+#cursor.slapping {
+  transform: translate(-28%, -50%) rotate(28deg) scale(1.4);
+}
+
+/* ─── HEADER ─── */
+header {
+  text-align: center;
+  padding: 42px 20px 20px;
+}
+header h1 {
+  font-size: clamp(1.8rem, 6vw, 2.8rem);
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+header p {
+  color: #ccc;
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+/* ─── TAB BAR ─── */
+.tab-bar {
+  display: flex;
+  gap: 10px;
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px;
+  box-shadow: 0 4px 20px rgba(200,120,255,0.15);
+  margin: 4px 20px 32px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  cursor: none;
+  font-family: 'Jua', sans-serif;
+  font-size: 1rem;
+  color: #bbb;
+  border: none;
+  background: transparent;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.tab img {
+  width: 28px;
+  height: 33px;
+  object-fit: cover;
+  border-radius: 5px;
+  pointer-events: none;
+}
+.tab:hover { transform: scale(1.05); color: #999; }
+
+.tab.active-gpt    { background: #10a37f; color: #fff; }
+.tab.active-gemini { background: #4285f4; color: #fff; }
+.tab.active-claude { background: #a855f7; color: #fff; }
+
+/* ─── SLAP AREA ─── */
+.slap-zone {
+  position: relative;
+  cursor: none;
+  display: inline-block;
+  border-radius: 22px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+}
+.slap-zone img {
+  width: min(300px, 78vw);
+  border-radius: 22px;
+  display: block;
+  pointer-events: none;
+  transition: transform 0.07s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.slap-zone.hit img {
+  transform: scale(0.95) rotate(-2.5deg);
+}
+.hit-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 38%, rgba(255,70,110,0.42) 0%, transparent 62%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.05s;
+}
+.slap-zone.hit .hit-glow { opacity: 1; }
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,107,157,0.5);
+  width: 56px; height: 56px;
+  margin-left: -28px; margin-top: -28px;
+  pointer-events: none;
+  animation: rippleOut 0.48s ease-out forwards;
+}
+@keyframes rippleOut {
+  from { transform: scale(0.3); opacity: 1; }
+  to   { transform: scale(2.6); opacity: 0; }
+}
+
+/* ─── SCORE ─── */
+.score-wrap {
+  margin-top: 26px;
+  text-align: center;
+}
+.score-num {
+  font-size: 5.5rem;
+  line-height: 1;
+  transition: transform 0.12s cubic-bezier(0.3,0,0.5,2.2);
+  color: var(--accent);
+}
+.score-num.pop { transform: scale(1.5); }
+.score-unit { color: #ccc; font-size: 1rem; margin-top: 4px; }
+
+/* ─── REACTION ─── */
+.reaction {
+  font-size: 1.7rem;
+  min-height: 2.4rem;
+  margin-top: 12px;
+  color: var(--pink);
+  text-align: center;
+}
+.reaction.animate {
+  animation: fadeInUp 0.2s ease-out;
+}
+@keyframes fadeInUp {
+  from { opacity:0; transform: translateY(10px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* ─── RESET BTN ─── */
+.btn-reset {
+  margin: 28px 0 60px;
+  padding: 11px 30px;
+  border-radius: 50px;
+  border: none;
+  font-family: 'Jua', sans-serif;
+  font-size: 1rem;
+  color: #fff;
+  cursor: none;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  box-shadow: 0 4px 18px rgba(200,120,255,0.28);
+  transition: transform 0.12s;
+}
+.btn-reset:hover  { transform: scale(1.07); }
+.btn-reset:active { transform: scale(0.94); }
+
+/* ─── PARTICLES ─── */
+.particle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 1.5rem;
+  z-index: 9999;
+  animation: floatUp 0.9s ease-out forwards;
+}
+@keyframes floatUp {
+  0%   { transform: translate(0,0) scale(0.7) rotate(0deg); opacity:1; }
+  100% { transform: translate(var(--dx),-130px) scale(1.3) rotate(var(--dr)); opacity:0; }
+}
+
+#flash {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background: rgba(255,90,140,0.14);
+  opacity: 0;
+  z-index: 9998;
+}
+#flash.on { opacity: 1; }
+
+@media (hover: none) {
+  body { cursor: auto; }
+  #cursor { display: none; }
+  .tab, .btn-reset, .slap-zone { cursor: pointer; }
+}
+</style>
+</head>
+<body>
+
+<div id="flash"></div>
+<div id="cursor">🖐️</div>
+
+<header>
+  <h1>🍑 AI 엉덩이 때리기</h1>
+  <p>누구를 혼내줄지 고르고 때려보세요!</p>
+</header>
+
+<!-- 탭 선택 -->
+<div class="tab-bar">
+  <button class="tab active-gpt" id="tab-gpt" onclick="selectAI('gpt')">
+    <img src="gpt.png" alt=""> ChatGPT
+  </button>
+  <button class="tab" id="tab-gemini" onclick="selectAI('gemini')">
+    <img src="gemini.png" alt=""> Gemini
+  </button>
+  <button class="tab" id="tab-claude" onclick="selectAI('claude')">
+    <img src="claude.png" alt=""> Claude
+  </button>
+</div>
+
+<!-- 때리기 영역 -->
+<div class="slap-zone" id="slapZone">
+  <img id="slapImg" src="gpt.png" alt="">
+  <div class="hit-glow"></div>
+</div>
+
+<div class="score-wrap">
+  <div class="score-num" id="scoreNum">0</div>
+  <div class="score-unit">대 맞음</div>
+</div>
+
+<div class="reaction" id="reaction">클릭해서 때려보세요! 🖐️</div>
+
+<button class="btn-reset" onclick="resetScore()">🔄 초기화</button>
+
+<script>
+/* ── Cursor ─────────────────────────── */
+const cursorEl = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursorEl.style.left = e.clientX + 'px';
+  cursorEl.style.top  = e.clientY + 'px';
+});
+
+/* ── Data ───────────────────────────── */
+const AI_INFO = {
+  gpt:    { name: 'ChatGPT', img: 'gpt.png',    color: '#10a37f' },
+  gemini: { name: 'Gemini',  img: 'gemini.png', color: '#4285f4' },
+  claude: { name: 'Claude',  img: 'claude.png', color: '#a855f7' },
+};
+const PARTICLES = ['💥','✨','🌟','💫','🩷','🌸','⭐','🔥','🫧','💖'];
+const REACTIONS  = ['아얏! 🥺','으윽...','살려줘요!','왜 때려요 😭','그만해줘요 😤','아파요!!','꺄악!','헉!','윽..','으아악!','하지마요!','엉엉 😭'];
+
+let currentAI = 'gpt';
+let scores = { gpt: 0, gemini: 0, claude: 0 };
+
+// load saved
+Object.keys(scores).forEach(ai => {
+  const s = localStorage.getItem('slap_' + ai);
+  if (s) scores[ai] = parseInt(s);
+});
+
+// init display
+document.getElementById('scoreNum').textContent = scores['gpt'];
+document.querySelector('.score-num').style.color = AI_INFO['gpt'].color;
+
+/* ── Select AI ──────────────────────── */
+function selectAI(ai) {
+  currentAI = ai;
+
+  // tab styles
+  Object.keys(AI_INFO).forEach(a => {
+    const t = document.getElementById('tab-' + a);
+    t.className = a === ai ? 'tab active-' + a : 'tab';
+  });
+
+  // image
+  document.getElementById('slapImg').src = AI_INFO[ai].img;
+
+  // score color + value
+  document.getElementById('scoreNum').style.color = AI_INFO[ai].color;
+  document.getElementById('scoreNum').textContent = scores[ai];
+
+  // reaction reset
+  const react = document.getElementById('reaction');
+  react.textContent = '클릭해서 때려보세요! 🖐️';
+  react.style.color = AI_INFO[ai].color;
+}
+
+/* ── Reset ──────────────────────────── */
+function resetScore() {
+  if (!confirm('정말 초기화할까요? 🥺')) return;
+  scores[currentAI] = 0;
+  localStorage.removeItem('slap_' + currentAI);
+  document.getElementById('scoreNum').textContent = '0';
+  document.getElementById('reaction').textContent = '클릭해서 때려보세요! 🖐️';
+}
+
+/* ── Slap ───────────────────────────── */
+const slapZone = document.getElementById('slapZone');
+let hitTimer = null, popTimer = null, cursorTimer = null;
+
+function doSlap(clientX, clientY) {
+  scores[currentAI]++;
+  localStorage.setItem('slap_' + currentAI, scores[currentAI]);
+
+  // score pop
+  const numEl = document.getElementById('scoreNum');
+  numEl.textContent = scores[currentAI];
+  numEl.classList.remove('pop');
+  void numEl.offsetWidth;
+  numEl.classList.add('pop');
+  clearTimeout(popTimer);
+  popTimer = setTimeout(() => numEl.classList.remove('pop'), 220);
+
+  // shake — clear previous so class never gets permanently stuck
+  slapZone.classList.add('hit');
+  clearTimeout(hitTimer);
+  hitTimer = setTimeout(() => slapZone.classList.remove('hit'), 160);
+
+  // cursor slap
+  cursorEl.classList.add('slapping');
+  clearTimeout(cursorTimer);
+  cursorTimer = setTimeout(() => cursorEl.classList.remove('slapping'), 210);
+
+  // ripple
+  const rect = slapZone.getBoundingClientRect();
+  const rip = document.createElement('div');
+  rip.className = 'ripple';
+  rip.style.left = (clientX - rect.left) + 'px';
+  rip.style.top  = (clientY - rect.top)  + 'px';
+  slapZone.appendChild(rip);
+  setTimeout(() => rip.remove(), 500);
+
+  // particles
+  spawnParticles(clientX, clientY);
+
+  // reaction
+  const react = document.getElementById('reaction');
+  react.classList.remove('animate');
+  void react.offsetWidth;
+  react.classList.add('animate');
+  react.textContent = REACTIONS[Math.floor(Math.random() * REACTIONS.length)];
+
+  // milestone
+  if (scores[currentAI] % 10 === 0) {
+    setTimeout(() => {
+      document.getElementById('reaction').textContent = `🎉 ${scores[currentAI]}대 달성!!`;
+    }, 280);
+  }
+
+  // flash
+  document.getElementById('flash').classList.add('on');
+  setTimeout(() => document.getElementById('flash').classList.remove('on'), 65);
+}
+
+slapZone.addEventListener('click', e => { e.currentTarget.blur(); doSlap(e.clientX, e.clientY); });
+slapZone.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  doSlap(t.clientX, t.clientY);
+}, { passive: false });
+
+/* ── Particles ──────────────────────── */
+function spawnParticles(x, y) {
+  const n = 5 + Math.floor(Math.random() * 4);
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement('div');
+    el.className = 'particle';
+    el.textContent = PARTICLES[Math.floor(Math.random() * PARTICLES.length)];
+    const dx = (Math.random() - 0.5) * 170;
+    const dr = (Math.random() - 0.5) * 80 + 'deg';
+    el.style.setProperty('--dx', dx + 'px');
+    el.style.setProperty('--dr', dr);
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+    el.style.animationDelay = Math.random() * 0.1 + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1050);
+  }
+}
+</script>
+</body>
+</html>
